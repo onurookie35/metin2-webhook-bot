@@ -233,7 +233,7 @@ const WEEKLY_MESSAGES = {
             image_url: "https://tr-wiki.metin2.gameforge.com/images/7/78/Artt%C4%B1rma_Ka%C4%9F%C4%B1d%C4%B1.png"
         },
         {
-            hour: 01, minute: 51,
+            hour: 10, minute: 00,
             code: "Bu mesaj bot tarafından gönderilmiştir.",
             title: "17:00 - 21:00 (4 Saat Sürecek)",
             message: "Kötü Ruh Kovma Kağıdı eventi başladı.",
@@ -241,7 +241,7 @@ const WEEKLY_MESSAGES = {
             image_url: "https://tr-wiki.metin2.gameforge.com/images/3/3d/K%C3%B6t%C3%BC_Ruh_Kovma_Ka%C4%9F%C4%B1d%C4%B1.png"
         },
         {
-            hour: 01, minute: 52,
+            hour: 09, minute: 00,
             code: "Bu mesaj bot tarafından gönderilmiştir.",
             title: "21:00 - 01:00 (4 Saat Sürecek)",
             message: "Liderin Kitabı eventi başladı.",
