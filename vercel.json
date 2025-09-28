@@ -12,14 +12,12 @@
       "dest": "/api/webhook.js"
     },
     {
-      "src": "/api/status",
+      "src": "/api/status", 
       "dest": "/api/status.js"
-    }
-  ],
-  "crons": [
+    },
     {
-      "path": "/api/webhook",
-      "schedule": "*/5 * * * *"
+      "src": "/",
+      "dest": "/api/status.js"
     }
   ],
   "env": {
