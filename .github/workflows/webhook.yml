@@ -1,3 +1,4 @@
+
 name: Metin2 Webhook Bot
 on:
   schedule:
@@ -18,5 +19,6 @@ jobs:
       - name: Run webhook script
         env:
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          STATUS_WEBHOOK_URL: ${{ secrets.STATUS_WEBHOOK_URL }}
         run: |
           node webhook-script.js
