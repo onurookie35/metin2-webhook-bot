@@ -1,9 +1,8 @@
 name: Metin2 Webhook Bot
 on:
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '* * * * *'  # Her dakika çalışır (en düşük süre)
   workflow_dispatch:
-
 jobs:
   send-webhook:
     runs-on: ubuntu-latest
