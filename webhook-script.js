@@ -83,7 +83,7 @@ const WEEKLY_MESSAGES = {
     2: [ // Çarşamba
         {
             hour: 1, minute: 0,
-            code: "Bu mesaj bot tarafından gönderilmiştır.",
+            code: "Bu mesaj bot tarafından gönderilmiştir.",
             title: "01:00 - 13:00 (12 Saat Sürecek)",
             message: "Balıkçılık eventi başladı.",
             color: 0x00ff00,
@@ -218,36 +218,20 @@ const WEEKLY_MESSAGES = {
     ],
     6: [ // Pazar
         {
-            hour: 22, minute: 42,
+            hour: 23, minute: 15,
             code: "Bu mesaj bot tarafından gönderilmiştir.",
-            title: "01:00 - 13:00 (12 Saat Sürecek)",
-            message: "Kötü Ruh Kovma Kağıdı eventi başladı.",
-            color: 0x00ff00,
+            title: "TEST - Bot Çalışıyor",
+            message: "GitHub Actions test eventi başladı.",
+            color: 0xff0000,
             image_url: "https://tr-wiki.metin2.gameforge.com/images/3/3d/K%C3%B6t%C3%BC_Ruh_Kovma_Ka%C4%9F%C4%B1d%C4%B1.png"
         },
         {
-            hour: 22, minute: 45,
+            hour: 23, minute: 20,
             code: "Bu mesaj bot tarafından gönderilmiştir.",
-            title: "13:00 - 17:00 (4 Saat Sürecek)",
-            message: "Arttırma Kağıdı eventi başladı.",
-            color: 0x00ff00,
+            title: "TEST 2 - Bot Çalışıyor",
+            message: "İkinci test mesajı.",
+            color: 0xff0000,
             image_url: "https://tr-wiki.metin2.gameforge.com/images/7/78/Artt%C4%B1rma_Ka%C4%9F%C4%B1d%C4%B1.png"
-        },
-        {
-            hour: 22, minute: 48,
-            code: "Bu mesaj bot tarafından gönderilmiştir.",
-            title: "17:00 - 21:00 (4 Saat Sürecek)",
-            message: "Kötü Ruh Kovma Kağıdı eventi başladı.",
-            color: 0x00ff00,
-            image_url: "https://tr-wiki.metin2.gameforge.com/images/3/3d/K%C3%B6t%C3%BC_Ruh_Kovma_Ka%C4%9F%C4%B1d%C4%B1.png"
-        },
-        {
-            hour: 22, minute: 52,
-            code: "Bu mesaj bot tarafından gönderilmiştir.",
-            title: "21:00 - 01:00 (4 Saat Sürecek)",
-            message: "Liderin Kitabı eventi başladı.",
-            color: 0x00ff00,
-            image_url: "https://tr-wiki.metin2.gameforge.com/images/8/8b/Liderin_Kitab%C4%B1.png"
         }
     ]
 };
@@ -309,7 +293,7 @@ async function sendWebhookMessage(messageData, dayName) {
 
 // Status mesajı gönderme fonksiyonu (Log kanalı için)
 async function sendStatusMessage(status, details, nextEventInfo = null) {
-    if (!STATUS_WEBHOOK_URL) return; // Status webhook yoksa gönderme
+    if (!STATUS_WEBHOOK_URL) return;
 
     const fields = [
         {
@@ -324,7 +308,6 @@ async function sendStatusMessage(status, details, nextEventInfo = null) {
         }
     ];
 
-    // Bir sonraki event bilgisi varsa ekle
     if (nextEventInfo) {
         fields.push({
             name: "⏰ Bir Sonraki Event",
@@ -403,7 +386,7 @@ function getDetailedNextEventInfo(currentMappedDay, currentHour, currentMinute) 
             
             return {
                 time: timeStr,
-                title: message.title.split(' (')[0], // Süre bilgisini kaldır
+                title: message.title.split(' (')[0],
                 timeLeft: hoursLeft > 0 ? `${hoursLeft}s ${minutesLeft}dk` : `${minutesLeft}dk`,
                 fullInfo: `**${timeStr}** - ${message.title.split(' (')[0]} *(${hoursLeft > 0 ? `${hoursLeft}s ${minutesLeft}dk` : `${minutesLeft}dk`} sonra)*`
             };
@@ -414,7 +397,6 @@ function getDetailedNextEventInfo(currentMappedDay, currentHour, currentMinute) 
     let nextDay = (currentMappedDay + 1) % 7;
     let daysAhead = 1;
     
-    // En fazla 7 gün ileri bak
     while (daysAhead <= 7) {
         const tomorrowMessages = WEEKLY_MESSAGES[nextDay];
         if (tomorrowMessages && tomorrowMessages.length > 0) {
@@ -441,13 +423,13 @@ function getDetailedNextEventInfo(currentMappedDay, currentHour, currentMinute) 
     };
 }
 
-// Bir sonraki event bilgisi (eski fonksiyon - uyumluluk için)
+// Bir sonraki event bilgisi
 function getNextEventInfo(currentMappedDay, currentHour, currentMinute) {
     const detailed = getDetailedNextEventInfo(currentMappedDay, currentHour, currentMinute);
     return detailed.fullInfo;
 }
 
-// Bir sonraki mesajı bulma fonksiyonu - GITHUB ACTIONS İÇİN DÜZELTİLMİŞ
+// Bir sonraki mesajı bulma fonksiyonu
 function getNextMessage() {
     const now = new Date();
     const turkeyTime = new Date(now.getTime() + (3 * 60 * 60 * 1000));
@@ -462,10 +444,20 @@ function getNextMessage() {
     const mappedDay = dayMapping[currentDay];
     const todayMessages = WEEKLY_MESSAGES[mappedDay];
     
-    console.log(`=== GITHUB ACTIONS DEBUG ===`);
+    console.log(`=== DEBUG BİLGİLERİ ===`);
     console.log(`Türkiye saati: ${turkeyTime.toLocaleString('tr-TR')}`);
     console.log(`Kontrol saati: ${currentHour}:${currentMinute.toString().padStart(2, '0')}`);
     console.log(`Gün: ${getDayName(mappedDay)}`);
+    console.log(`Bugünün mesaj sayısı: ${todayMessages ? todayMessages.length : 0}`);
+    
+    if (todayMessages) {
+        console.log(`Bugünün event saatleri:`);
+        todayMessages.forEach((msg, index) => {
+            const eventTime = `${msg.hour}:${msg.minute.toString().padStart(2, '0')}`;
+            const timeDiff = Math.abs((msg.hour * 60 + msg.minute) - (currentHour * 60 + currentMinute));
+            console.log(`  ${index}: ${eventTime} - ${msg.title} (Fark: ${timeDiff} dk)`);
+        });
+    }
     
     // ±5 dakika tolerans (GitHub Actions gecikmesi için)
     for (const message of todayMessages) {
@@ -473,9 +465,6 @@ function getNextMessage() {
         const currentTimeMinutes = currentHour * 60 + currentMinute;
         const timeDifference = Math.abs(eventTimeMinutes - currentTimeMinutes);
         
-        console.log(`Event: ${message.hour}:${message.minute.toString().padStart(2, '0')} - Fark: ${timeDifference} dakika`);
-        
-        // 5 dakika tolerans
         if (timeDifference <= 5) {
             console.log(`🎯 EVENT TESPİT EDİLDİ: ${message.title} (${timeDifference} dk farkla)`);
             
@@ -497,20 +486,8 @@ function getNextMessage() {
         nextEventInfo: nextEventInfo
     };
 }
-    }
-    
-    // Bir sonraki event bilgisini al
-    const nextEventInfo = getDetailedNextEventInfo(mappedDay, currentHour, currentMinute);
-    
-    return { 
-        shouldSend: false, 
-        currentTime: `${currentHour}:${currentMinute.toString().padStart(2, '0')}`,
-        nextEvent: getNextEventInfo(mappedDay, currentHour, currentMinute),
-        nextEventInfo: nextEventInfo
-    };
-}
 
-// Ana fonksiyon - GELİŞTİRİLMİŞ LOGİK
+// Ana fonksiyon
 async function main() {
     try {
         const now = new Date();
@@ -527,12 +504,10 @@ async function main() {
             if (success) {
                 console.log(`✅ BAŞARILI: ${result.message.title} mesajı gönderildi!`);
                 
-                // Status kanalına başarı mesajı gönder
                 const statusDetails = `**${result.message.title}** mesajı başarıyla gönderildi!`;
                 const nextEventText = result.nextEventInfo ? result.nextEventInfo.fullInfo : "Bilinmiyor";
                 await sendStatusMessage("🎯 EVENT ZAMANI!", statusDetails, nextEventText);
                 
-                // Bir sonraki event bilgisini göster
                 if (result.nextEventInfo) {
                     console.log(`⏭️ Bir sonraki event: ${result.nextEventInfo.fullInfo}`);
                 }
@@ -544,23 +519,20 @@ async function main() {
             console.log(`⏰ Event zamanı değil - Şu anki saat: ${result.currentTime}`);
             console.log(`📅 ${result.nextEvent}`);
             
-            // Detaylı bir sonraki event bilgilerini göster
             if (result.nextEventInfo) {
                 console.log(`⏳ Kalan süre: ${result.nextEventInfo.timeLeft}`);
                 console.log(`📋 Event: ${result.nextEventInfo.title}`);
             }
             
-            // Her 30 dakikada bir status mesajı gönder (spam'i önlemek için)
+            // Her 30 dakikada bir status mesajı gönder
             const minute = turkeyTime.getMinutes();
-            
-            // Her saat başında ve yarım saatte durum raporu gönder
             if (minute === 0 || minute === 30) {
                 const statusDetails = `Şu anki saat: **${result.currentTime}**\nBot aktif ve çalışıyor.`;
                 const nextEventText = result.nextEventInfo ? result.nextEventInfo.fullInfo : "Bilinmiyor";
                 await sendStatusMessage("⏰ Bot Aktif", statusDetails, nextEventText);
             }
             
-            console.log(`🔄 Bot 1 dakika sonra tekrar kontrol edecek...`);
+            console.log(`🔄 Bot 5 dakika sonra tekrar kontrol edecek...`);
         }
         
         console.log(`📊 Bot durumu: Aktif ve çalışıyor`);
@@ -569,7 +541,6 @@ async function main() {
     } catch (error) {
         console.error('❌ KRITIK HATA:', error);
         
-        // Hata durumunda status kanalına bildirim gönder
         if (STATUS_WEBHOOK_URL) {
             await sendStatusMessage("❌ KRITIK HATA", `Bot çalışırken hata oluştu: ${error.message}`);
         }
