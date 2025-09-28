@@ -1,7 +1,7 @@
 name: Metin2 Webhook Bot
 on:
   schedule:
-    - cron: '*/1 * '*
+    - cron: '* * * * *'  # Her dakika çalışır (en düşük süre)
   workflow_dispatch:
 jobs:
   send-webhook:
@@ -9,14 +9,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
-name: Setup Node.js
-uses: actions/setup-node@v3
-with:
-  node-version: '18'
-
-name: Run webhook script
-env:
-  WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
-run: |
-  node webhook-script.js
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Run webhook script
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+        run: |
+          node webhook-script.js
