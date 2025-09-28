@@ -174,7 +174,7 @@ const WEEKLY_MESSAGES = {
         },
         {
             hour: 21, minute: 0,
-            code: "Bu mesaj bot tarafından gönderilmiştır.",
+            code: "Bu mesaj bot tarafından gönderilmiştir.",
             title: "21:00 - 01:00 (4 Saat Sürecek)",
             message: "Cor Draconis eventi başladı.",
             color: 0x00ff00,
@@ -217,7 +217,7 @@ const WEEKLY_MESSAGES = {
     ],
     6: [ // Pazar
         {
-            hour: 8, minute: 37,
+            hour: 1, minute: 0,
             code: "Bu mesaj bot tarafından gönderilmiştir.",
             title: "01:00 - 13:00 (12 Saat Sürecek)",
             message: "Kötü Ruh Kovma Kağıdı eventi başladı.",
@@ -225,7 +225,7 @@ const WEEKLY_MESSAGES = {
             image_url: "https://tr-wiki.metin2.gameforge.com/images/3/3d/K%C3%B6t%C3%BC_Ruh_Kovma_Ka%C4%9F%C4%B1d%C4%B1.png"
         },
         {
-            hour: 8, minute: 38,
+            hour: 13, minute: 0,
             code: "Bu mesaj bot tarafından gönderilmiştir.",
             title: "13:00 - 17:00 (4 Saat Sürecek)",
             message: "Arttırma Kağıdı eventi başladı.",
@@ -233,7 +233,7 @@ const WEEKLY_MESSAGES = {
             image_url: "https://tr-wiki.metin2.gameforge.com/images/7/78/Artt%C4%B1rma_Ka%C4%9F%C4%B1d%C4%B1.png"
         },
         {
-            hour: 8, minute: 39,
+            hour: 17, minute: 0,
             code: "Bu mesaj bot tarafından gönderilmiştir.",
             title: "17:00 - 21:00 (4 Saat Sürecek)",
             message: "Kötü Ruh Kovma Kağıdı eventi başladı.",
@@ -241,7 +241,7 @@ const WEEKLY_MESSAGES = {
             image_url: "https://tr-wiki.metin2.gameforge.com/images/3/3d/K%C3%B6t%C3%BC_Ruh_Kovma_Ka%C4%9F%C4%B1d%C4%B1.png"
         },
         {
-            hour: 8, minute: 40,
+            hour: 21, minute: 0,
             code: "Bu mesaj bot tarafından gönderilmiştir.",
             title: "21:00 - 01:00 (4 Saat Sürecek)",
             message: "Liderin Kitabı eventi başladı.",
@@ -288,16 +288,16 @@ async function sendWebhookMessage(messageData, dayName) {
 
         const req = https.request(options, (res) => {
             if (res.statusCode === 204) {
-                console.log(`Başarıyla gönderildi: ${messageData.title}`);
+                console.log(`✅ Başarıyla gönderildi: ${messageData.title}`);
                 resolve(true);
             } else {
-                console.error(`HTTP ${res.statusCode} hatası`);
+                console.error(`❌ HTTP ${res.statusCode} hatası`);
                 resolve(false);
             }
         });
 
         req.on('error', (error) => {
-            console.error(`Request hatası: ${error}`);
+            console.error(`❌ Request hatası: ${error}`);
             reject(error);
         });
 
@@ -306,51 +306,125 @@ async function sendWebhookMessage(messageData, dayName) {
     });
 }
 
-// Bir sonraki mesajı bulma fonksiyonu
-function getNextMessage() {
-    const now = new Date();
-    const turkeyTime = new Date(now.getTime() + (3 * 60 * 60 * 1000));
-    
-    const currentDay = turkeyTime.getDay();
-    const currentHour = turkeyTime.getHours();
-    const currentMinute = turkeyTime.getMinutes();
-    
-    const dayMapping = { 0: 6, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5 };
-    const mappedDay = dayMapping[currentDay];
-    
-    const todayMessages = WEEKLY_MESSAGES[mappedDay];
-    for (const message of todayMessages) {
-        const messageTime = message.hour * 60 + message.minute;
-        const currentTime = currentHour * 60 + currentMinute;
-        
-        if (Math.abs(messageTime - currentTime) <= 7) { // 7 dakika tolerans
-            return { message, dayName: getDayName(mappedDay), shouldSend: true };
-        }
-    }
-    
-    return { shouldSend: false, currentTime: `${currentHour}:${currentMinute.toString().padStart(2, '0')}` };
-}
-
+// Gün ismi alma fonksiyonu
 function getDayName(dayIndex) {
     const days = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
     return days[dayIndex];
 }
 
-// Ana fonksiyon
+// Bir sonraki event bilgisi
+function getNextEventInfo(currentMappedDay, currentHour, currentMinute) {
+    const currentTime = currentHour * 60 + currentMinute;
+    
+    // Bugünün kalan eventlerini kontrol et
+    const todayMessages = WEEKLY_MESSAGES[currentMappedDay];
+    for (const message of todayMessages) {
+        const eventTime = message.hour * 60 + message.minute;
+        if (eventTime > currentTime) {
+            return `Sonraki event: ${message.hour}:${message.minute.toString().padStart(2, '0')} - ${message.title}`;
+        }
+    }
+    
+    // Yarının ilk eventini bul
+    const nextDay = (currentMappedDay + 1) % 7;
+    const tomorrowMessages = WEEKLY_MESSAGES[nextDay];
+    if (tomorrowMessages && tomorrowMessages.length > 0) {
+        const firstEvent = tomorrowMessages[0];
+        return `Yarının ilk eventi: ${firstEvent.hour}:${firstEvent.minute.toString().padStart(2, '0')} - ${firstEvent.title}`;
+    }
+    
+    return "Event bilgisi bulunamadı";
+}
+
+// Bir sonraki mesajı bulma fonksiyonu - DÜZELTİLMİŞ VERSİYON
+function getNextMessage() {
+    const now = new Date();
+    const turkeyTime = new Date(now.getTime() + (3 * 60 * 60 * 1000));
+    
+    const currentDay = turkeyTime.getDay(); // JavaScript: 0=Pazar, 1=Pazartesi, ...
+    const currentHour = turkeyTime.getHours();
+    const currentMinute = turkeyTime.getMinutes();
+    
+    // JavaScript gün numarasını bizim sistemimize çevir
+    // JavaScript: 0=Pazar, 1=Pazartesi, 2=Salı, 3=Çarşamba, 4=Perşembe, 5=Cuma, 6=Cumartesi
+    // Bizim sistem: 0=Pazartesi, 1=Salı, 2=Çarşamba, 3=Perşembe, 4=Cuma, 5=Cumartesi, 6=Pazar
+    const dayMapping = { 
+        0: 6, // Pazar -> 6
+        1: 0, // Pazartesi -> 0
+        2: 1, // Salı -> 1
+        3: 2, // Çarşamba -> 2
+        4: 3, // Perşembe -> 3
+        5: 4, // Cuma -> 4
+        6: 5  // Cumartesi -> 5
+    };
+    const mappedDay = dayMapping[currentDay];
+    
+    const todayMessages = WEEKLY_MESSAGES[mappedDay];
+    
+    // DEBUG bilgileri
+    console.log(`=== DEBUG BİLGİLERİ ===`);
+    console.log(`JavaScript gün numarası: ${currentDay}`);
+    console.log(`Türkiye saati: ${turkeyTime.toLocaleString('tr-TR')}`);
+    console.log(`Saat:Dakika: ${currentHour}:${currentMinute}`);
+    console.log(`Mapped gün: ${mappedDay} (${getDayName(mappedDay)})`);
+    console.log(`Bugünün mesaj sayısı: ${todayMessages ? todayMessages.length : 0}`);
+    
+    if (todayMessages) {
+        console.log(`Bugünün mesaj saatleri:`);
+        todayMessages.forEach((msg, index) => {
+            const eventTime = `${msg.hour}:${msg.minute.toString().padStart(2, '0')}`;
+            const currentTime = `${currentHour}:${currentMinute.toString().padStart(2, '0')}`;
+            const timeDiff = Math.abs((msg.hour * 60 + msg.minute) - (currentHour * 60 + currentMinute));
+            console.log(`  ${index}: ${eventTime} - ${msg.title} (Fark: ${timeDiff} dk)`);
+        });
+    }
+    console.log(`======================`);
+    
+    // Tam saat kontrolü (±2 dakika tolerans)
+    for (const message of todayMessages) {
+        const timeDifference = Math.abs((message.hour * 60 + message.minute) - (currentHour * 60 + currentMinute));
+        if (timeDifference <= 2) {
+            console.log(`🎯 EVENT ZAMANI TESPİT EDİLDİ: ${message.title}`);
+            return { message, dayName: getDayName(mappedDay), shouldSend: true };
+        }
+    }
+    
+    return { 
+        shouldSend: false, 
+        currentTime: `${currentHour}:${currentMinute.toString().padStart(2, '0')}`,
+        nextEvent: getNextEventInfo(mappedDay, currentHour, currentMinute)
+    };
+}
+
+// Ana fonksiyon - GELİŞTİRİLMİŞ LOGİK
 async function main() {
     try {
-        console.log('Webhook bot çalışıyor...', new Date().toISOString());
+        const now = new Date();
+        const turkeyTime = new Date(now.getTime() + (3 * 60 * 60 * 1000));
+        console.log(`🤖 Bot kontrol ediyor - Türkiye saati: ${turkeyTime.toLocaleString('tr-TR')}`);
         
         const result = getNextMessage();
         
         if (result.shouldSend) {
+            console.log(`🎯 EVENT ZAMANI! Mesaj gönderiliyor...`);
             const success = await sendWebhookMessage(result.message, result.dayName);
-            console.log(`Sonuç: ${success ? 'Başarılı' : 'Başarısız'}`);
+            
+            if (success) {
+                console.log(`✅ BAŞARILI: ${result.message.title} mesajı gönderildi!`);
+            } else {
+                console.log(`❌ HATA: Mesaj gönderilemedi`);
+            }
         } else {
-            console.log(`Mesaj zamanı değil. Şu anki saat: ${result.currentTime}`);
+            console.log(`⏰ Event zamanı değil - Şu anki saat: ${result.currentTime}`);
+            console.log(`📅 ${result.nextEvent}`);
+            console.log(`🔄 Bot 5 dakika sonra tekrar kontrol edecek...`);
         }
+        
+        console.log(`📊 Bot durumu: Aktif ve çalışıyor`);
+        console.log(`==========================================`);
+        
     } catch (error) {
-        console.error('Ana fonksiyon hatası:', error);
+        console.error('❌ KRITIK HATA:', error);
         process.exit(1);
     }
 }
