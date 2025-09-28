@@ -1,7 +1,7 @@
 name: Metin2 Webhook Bot
 on:
   schedule:
-    - cron: '*/5 * * * *'  # Her 15 dakikada bir
+    - cron: '*/5 * * * *'  # Her 5 dakikada bir kontrol
   workflow_dispatch: # Manuel çalıştırma seçeneği
 
 jobs:
