@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/webhook",
+      "dest": "/api/webhook.js"
+    },
+    {
+      "src": "/api/status",
+      "dest": "/api/status.js"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/webhook",
+      "schedule": "*/5 * * * *"
+    }
+  ],
+  "env": {
+    "WEBHOOK_URL": "@webhook-url",
+    "STATUS_WEBHOOK_URL": "@status-webhook-url"
+  }
+}
