@@ -396,45 +396,7 @@ function getNextMessage() {
     };
 }
 
-// Bot durumu için ayrı kanal webhook'u (isteğe bağlı)
-async function sendStatusMessage(status, details) {
-    const statusWebhookUrl = process.env.STATUS_WEBHOOK_URL; // Ayrı bir kanal için
-    
-    if (!statusWebhookUrl) return; // Status webhook yoksa gönderme
-    
-    const embed = {
-        embeds: [{
-            title: "🤖 Bot Durumu",
-            description: status,
-            fields: [
-                {
-                    name: "📅 Tarih",
-                    value: new Date().toLocaleString('tr-TR'),
-                    inline: true
-                },
-                {
-                    name: "ℹ️ Detay",
-                    value: details,
-                    inline: false
-                }
-            ],
-            color: status.includes("EVENT ZAMANI") ? 0x00ff00 : 0x808080,
-            timestamp: new Date().toISOString()
-        }]
-    };
-    
-    try {
-        await fetch(statusWebhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(embed)
-        });
-    } catch (error) {
-        console.log('Status mesajı gönderilemedi:', error);
-    }
-}
-
-// Ana fonksiyonu güncelleyin
+// Gelişmiş logging ile ana fonksiyon
 async function main() {
     try {
         const now = new Date();
@@ -445,28 +407,45 @@ async function main() {
         
         if (result.shouldSend) {
             console.log(`🎯 EVENT ZAMANI! Mesaj gönderiliyor...`);
+            console.log(`📢 Gönderilecek mesaj: ${result.message.title}`);
             const success = await sendWebhookMessage(result.message, result.dayName);
             
             if (success) {
                 console.log(`✅ BAŞARILI: ${result.message.title} mesajı gönderildi!`);
-                // Discord'da da durum göster
-                await sendStatusMessage("🎯 EVENT ZAMANI!", `${result.message.title} mesajı gönderildi!`);
+                // Bir sonraki mesajı hesapla ve göster
+                const nextResult = getNextMessage();
+                if (nextResult.nextEventTime) {
+                    const nextTime = new Date(nextResult.nextEventTime);
+                    const timeUntilNext = Math.ceil((nextTime - turkeyTime) / (1000 * 60)); // dakika cinsinden
+                    console.log(`⏭️ Bir sonraki mesaj: ${nextTime.toLocaleString('tr-TR')} (${timeUntilNext} dakika sonra)`);
+                    console.log(`📋 Bir sonraki event: ${nextResult.nextEventTitle || 'Bilinmiyor'}`);
+                }
             } else {
                 console.log(`❌ HATA: Mesaj gönderilemedi`);
-                await sendStatusMessage("❌ HATA", "Mesaj gönderilemedi");
             }
         } else {
             console.log(`⏰ Event zamanı değil - Şu anki saat: ${result.currentTime}`);
-            console.log(`📅 ${result.nextEvent}`);
             
-            // Sadece belirli saatlerde durum mesajı gönder (spam'i önlemek için)
-            const hour = turkeyTime.getHours();
-            const minute = turkeyTime.getMinutes();
-            
-            // Her saat başında durum raporu gönder
-            if (minute === 0) {
-                await sendStatusMessage("⏰ Bot Aktif", `Şu anki saat: ${result.currentTime}\n${result.nextEvent}`);
+            // Bir sonraki event bilgileri
+            if (result.nextEventTime) {
+                const nextTime = new Date(result.nextEventTime);
+                const timeUntilNext = Math.ceil((nextTime - turkeyTime) / (1000 * 60)); // dakika cinsinden
+                const hoursUntilNext = Math.floor(timeUntilNext / 60);
+                const minutesUntilNext = timeUntilNext % 60;
+                
+                console.log(`📅 Bir sonraki event: ${result.nextEventTitle || 'Bilinmiyor'}`);
+                console.log(`⏰ Event zamanı: ${nextTime.toLocaleString('tr-TR')}`);
+                
+                if (hoursUntilNext > 0) {
+                    console.log(`⏳ Kalan süre: ${hoursUntilNext} saat ${minutesUntilNext} dakika`);
+                } else {
+                    console.log(`⏳ Kalan süre: ${minutesUntilNext} dakika`);
+                }
+            } else {
+                console.log(`❓ Bir sonraki event bilgisi bulunamadı`);
             }
+            
+            console.log(`🔄 Bot 1 dakika sonra tekrar kontrol edecek...`);
         }
         
         console.log(`📊 Bot durumu: Aktif ve çalışıyor`);
@@ -474,9 +453,86 @@ async function main() {
         
     } catch (error) {
         console.error('❌ KRITIK HATA:', error);
-        await sendStatusMessage("❌ KRITIK HATA", error.message);
         process.exit(1);
     }
+}
+
+// Gelişmiş getNextMessage örneği (sizinkine göre uyarlayın)
+function getNextMessage() {
+    const now = new Date();
+    const turkeyTime = new Date(now.getTime() + (3 * 60 * 60 * 1000));
+    const currentHour = turkeyTime.getHours();
+    const currentMinute = turkeyTime.getMinutes();
+    const currentDay = turkeyTime.getDay(); // 0=Pazar, 1=Pazartesi, ...
+    
+    // Event zamanlarınızı buraya ekleyin
+    const events = [
+        { day: 1, hour: 15, minute: 0, title: "Castle Siege", message: {...} }, // Pazartesi 15:00
+        { day: 3, hour: 20, minute: 30, title: "Guild War", message: {...} },   // Çarşamba 20:30
+        { day: 6, hour: 14, minute: 0, title: "Boss Event", message: {...} },   // Cumartesi 14:00
+        // Diğer eventler...
+    ];
+    
+    // Şu anki zaman için kontrol
+    const currentEvent = events.find(event => 
+        event.day === currentDay && 
+        event.hour === currentHour && 
+        event.minute === currentMinute
+    );
+    
+    if (currentEvent) {
+        return {
+            shouldSend: true,
+            message: currentEvent.message,
+            dayName: getDayName(currentEvent.day),
+            currentTime: `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`
+        };
+    }
+    
+    // Bir sonraki eventi bul
+    const nextEvent = findNextEvent(events, turkeyTime);
+    
+    return {
+        shouldSend: false,
+        currentTime: `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`,
+        nextEventTime: nextEvent ? nextEvent.time : null,
+        nextEventTitle: nextEvent ? nextEvent.title : null
+    };
+}
+
+// Bir sonraki eventi bulma fonksiyonu
+function findNextEvent(events, currentTime) {
+    let nextEvent = null;
+    let minTimeDiff = Infinity;
+    
+    events.forEach(event => {
+        // Bu haftaki event zamanı
+        const eventTime = new Date(currentTime);
+        const dayDiff = (event.day - currentTime.getDay() + 7) % 7;
+        eventTime.setDate(currentTime.getDate() + dayDiff);
+        eventTime.setHours(event.hour, event.minute, 0, 0);
+        
+        // Eğer bu haftaki event geçmişse, gelecek haftakini hesapla
+        if (eventTime <= currentTime) {
+            eventTime.setDate(eventTime.getDate() + 7);
+        }
+        
+        const timeDiff = eventTime - currentTime;
+        if (timeDiff < minTimeDiff) {
+            minTimeDiff = timeDiff;
+            nextEvent = {
+                time: eventTime,
+                title: event.title
+            };
+        }
+    });
+    
+    return nextEvent;
+}
+
+function getDayName(day) {
+    const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+    return days[day];
 }
 
 main();
