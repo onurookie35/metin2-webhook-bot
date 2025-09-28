@@ -447,57 +447,39 @@ function getNextEventInfo(currentMappedDay, currentHour, currentMinute) {
     return detailed.fullInfo;
 }
 
-// Bir sonraki mesajı bulma fonksiyonu - DÜZELTİLMİŞ VERSİYON
+// Bir sonraki mesajı bulma fonksiyonu - GITHUB ACTIONS İÇİN DÜZELTİLMİŞ
 function getNextMessage() {
     const now = new Date();
     const turkeyTime = new Date(now.getTime() + (3 * 60 * 60 * 1000));
     
-    const currentDay = turkeyTime.getDay(); // JavaScript: 0=Pazar, 1=Pazartesi, ...
+    const currentDay = turkeyTime.getDay();
     const currentHour = turkeyTime.getHours();
     const currentMinute = turkeyTime.getMinutes();
     
-    // JavaScript gün numarasını bizim sistemimize çevir
     const dayMapping = { 
-        0: 6, // Pazar -> 6
-        1: 0, // Pazartesi -> 0
-        2: 1, // Salı -> 1
-        3: 2, // Çarşamba -> 2
-        4: 3, // Perşembe -> 3
-        5: 4, // Cuma -> 4
-        6: 5  // Cumartesi -> 5
+        0: 6, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5
     };
     const mappedDay = dayMapping[currentDay];
-    
     const todayMessages = WEEKLY_MESSAGES[mappedDay];
     
-    // DEBUG bilgileri
-    console.log(`=== DEBUG BİLGİLERİ ===`);
-    console.log(`JavaScript gün numarası: ${currentDay}`);
+    console.log(`=== GITHUB ACTIONS DEBUG ===`);
     console.log(`Türkiye saati: ${turkeyTime.toLocaleString('tr-TR')}`);
-    console.log(`Saat:Dakika: ${currentHour}:${currentMinute}`);
-    console.log(`Mapped gün: ${mappedDay} (${getDayName(mappedDay)})`);
-    console.log(`Bugünün mesaj sayısı: ${todayMessages ? todayMessages.length : 0}`);
+    console.log(`Kontrol saati: ${currentHour}:${currentMinute.toString().padStart(2, '0')}`);
+    console.log(`Gün: ${getDayName(mappedDay)}`);
     
-    if (todayMessages) {
-        console.log(`Bugünün mesaj saatleri:`);
-        todayMessages.forEach((msg, index) => {
-            const eventTime = `${msg.hour}:${msg.minute.toString().padStart(2, '0')}`;
-            const currentTime = `${currentHour}:${currentMinute.toString().padStart(2, '0')}`;
-            const timeDiff = Math.abs((msg.hour * 60 + msg.minute) - (currentHour * 60 + currentMinute));
-            console.log(`  ${index}: ${eventTime} - ${msg.title} (Fark: ${timeDiff} dk)`);
-        });
-    }
-    console.log(`======================`);
-    
-    // Tam saat kontrolü (±2 dakika tolerans)
+    // ±5 dakika tolerans (GitHub Actions gecikmesi için)
     for (const message of todayMessages) {
-        const timeDifference = Math.abs((message.hour * 60 + message.minute) - (currentHour * 60 + currentMinute));
-        if (timeDifference <= 2) {
-            console.log(`🎯 EVENT ZAMANI TESPİT EDİLDİ: ${message.title}`);
+        const eventTimeMinutes = message.hour * 60 + message.minute;
+        const currentTimeMinutes = currentHour * 60 + currentMinute;
+        const timeDifference = Math.abs(eventTimeMinutes - currentTimeMinutes);
+        
+        console.log(`Event: ${message.hour}:${message.minute.toString().padStart(2, '0')} - Fark: ${timeDifference} dakika`);
+        
+        // 5 dakika tolerans
+        if (timeDifference <= 5) {
+            console.log(`🎯 EVENT TESPİT EDİLDİ: ${message.title} (${timeDifference} dk farkla)`);
             
-            // Bir sonraki event bilgisini al
             const nextEventInfo = getDetailedNextEventInfo(mappedDay, currentHour, currentMinute);
-            
             return { 
                 message, 
                 dayName: getDayName(mappedDay), 
@@ -505,6 +487,16 @@ function getNextMessage() {
                 nextEventInfo: nextEventInfo
             };
         }
+    }
+    
+    const nextEventInfo = getDetailedNextEventInfo(mappedDay, currentHour, currentMinute);
+    return { 
+        shouldSend: false, 
+        currentTime: `${currentHour}:${currentMinute.toString().padStart(2, '0')}`,
+        nextEvent: getNextEventInfo(mappedDay, currentHour, currentMinute),
+        nextEventInfo: nextEventInfo
+    };
+}
     }
     
     // Bir sonraki event bilgisini al
