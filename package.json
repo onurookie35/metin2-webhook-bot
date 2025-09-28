@@ -1,17 +1,13 @@
 {
-  "name": "metin2-event-bot",
+  "name": "metin2-discord-bot",
   "version": "1.0.0",
-  "description": "Metin2 Event Bot for Discord",
+  "description": "Metin2 Event Bot for Discord - Vercel Deployment",
   "main": "api/webhook.js",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "vercel dev",
-    "build": "echo 'No build step required'",
-    "start": "node api/webhook.js"
-  },
-  "dependencies": {
-    "node-cron": "^3.0.3"
-  },
-  "engines": {
-    "node": "18.x"
+    "deploy": "vercel --prod"
   }
 }
