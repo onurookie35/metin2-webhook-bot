@@ -396,7 +396,45 @@ function getNextMessage() {
     };
 }
 
-// Ana fonksiyon - GELİŞTİRİLMİŞ LOGİK
+// Bot durumu için ayrı kanal webhook'u (isteğe bağlı)
+async function sendStatusMessage(status, details) {
+    const statusWebhookUrl = process.env.STATUS_WEBHOOK_URL; // Ayrı bir kanal için
+    
+    if (!statusWebhookUrl) return; // Status webhook yoksa gönderme
+    
+    const embed = {
+        embeds: [{
+            title: "🤖 Bot Durumu",
+            description: status,
+            fields: [
+                {
+                    name: "📅 Tarih",
+                    value: new Date().toLocaleString('tr-TR'),
+                    inline: true
+                },
+                {
+                    name: "ℹ️ Detay",
+                    value: details,
+                    inline: false
+                }
+            ],
+            color: status.includes("EVENT ZAMANI") ? 0x00ff00 : 0x808080,
+            timestamp: new Date().toISOString()
+        }]
+    };
+    
+    try {
+        await fetch(statusWebhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(embed)
+        });
+    } catch (error) {
+        console.log('Status mesajı gönderilemedi:', error);
+    }
+}
+
+// Ana fonksiyonu güncelleyin
 async function main() {
     try {
         const now = new Date();
@@ -411,13 +449,24 @@ async function main() {
             
             if (success) {
                 console.log(`✅ BAŞARILI: ${result.message.title} mesajı gönderildi!`);
+                // Discord'da da durum göster
+                await sendStatusMessage("🎯 EVENT ZAMANI!", `${result.message.title} mesajı gönderildi!`);
             } else {
                 console.log(`❌ HATA: Mesaj gönderilemedi`);
+                await sendStatusMessage("❌ HATA", "Mesaj gönderilemedi");
             }
         } else {
             console.log(`⏰ Event zamanı değil - Şu anki saat: ${result.currentTime}`);
             console.log(`📅 ${result.nextEvent}`);
-            console.log(`🔄 Bot 5 dakika sonra tekrar kontrol edecek...`);
+            
+            // Sadece belirli saatlerde durum mesajı gönder (spam'i önlemek için)
+            const hour = turkeyTime.getHours();
+            const minute = turkeyTime.getMinutes();
+            
+            // Her saat başında durum raporu gönder
+            if (minute === 0) {
+                await sendStatusMessage("⏰ Bot Aktif", `Şu anki saat: ${result.currentTime}\n${result.nextEvent}`);
+            }
         }
         
         console.log(`📊 Bot durumu: Aktif ve çalışıyor`);
@@ -425,6 +474,7 @@ async function main() {
         
     } catch (error) {
         console.error('❌ KRITIK HATA:', error);
+        await sendStatusMessage("❌ KRITIK HATA", error.message);
         process.exit(1);
     }
 }
