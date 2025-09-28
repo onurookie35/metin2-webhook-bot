@@ -1,5 +1,5 @@
 
-name: Metin2 Webhook Bot
+name:Metin2 Webhook Bot
 on:
   schedule:
     - cron: '* * * * *'  # Her dakika çalışır (en düşük süre)
