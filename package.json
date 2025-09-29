@@ -1,0 +1,6 @@
+{
+  "name": "metin2-bot",
+  "dependencies": {
+    "discord.js": "^14.14.1"
+  }
+}
