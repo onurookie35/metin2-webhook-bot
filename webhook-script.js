@@ -14,7 +14,7 @@ if (!WEBHOOK_URL) {
 const WEEKLY_MESSAGES = {
     0: [ // Pazartesi
         {
-            hour: 11, minute: 10,
+            hour: 01, minute: 00,
             code: "Bu mesaj bot tarafından gönderilmiştir.",
             title: "01:00 - 13:00 (12 Saat Sürecek)",
             message: "Münzevi Tavsiyesi eventi başladı.",
