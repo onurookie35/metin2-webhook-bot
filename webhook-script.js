@@ -14,7 +14,7 @@ if (!WEBHOOK_URL) {
 const WEEKLY_MESSAGES = {
     0: [ // Pazartesi
         {
-            hour: 10, minute: 30,
+            hour: 1, minute: 00,
             code: "Bu mesaj bot tarafından gönderilmiştir.",
             title: "01:00 - 13:00 (12 Saat Sürecek)",
             message: "Münzevi Tavsiyesi eventi başladı.",
@@ -22,7 +22,7 @@ const WEEKLY_MESSAGES = {
             image_url: "https://tr-wiki.metin2.gameforge.com/images/f/fe/M%C3%BCnzevi_Tavsiyesi.png"
         },
         {
-            hour: 10, minute: 40,
+            hour: 13, minute: 00,
             code: "Bu mesaj bot tarafından gönderilmiştir.",
             title: "13:00 - 17:00 (4 Saat Sürecek)",
             message: "Yeşil Ejderha Fasulyesi eventi başladı.",
@@ -30,7 +30,7 @@ const WEEKLY_MESSAGES = {
             image_url: "https://tr-wiki.metin2.gameforge.com/images/5/51/Ye%C5%9Fil_Ejderha_Fasulyesi.png"
         },
         {
-            hour: 10, minute: 45,
+            hour: 17, minute: 00,
             code: "Bu mesaj bot tarafından gönderilmiştir.",
             title: "17:00 - 21:00 (4 Saat Sürecek)",
             message: "Kutsama Kağıdı eventi başladı.",
@@ -38,7 +38,7 @@ const WEEKLY_MESSAGES = {
             image_url: "https://tr-wiki.metin2.gameforge.com/images/e/ef/Kutsama_Ka%C4%9F%C4%B1d%C4%B1.png"
         },
         {
-            hour: 10, minute: 50,
+            hour: 21, minute: 00,
             code: "Bu mesaj bot tarafından gönderilmiştir.",
             title: "21:00 - 01:00 (4 Saat Sürecek)",
             message: "Nugget eventi başladı.",
