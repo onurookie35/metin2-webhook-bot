@@ -252,7 +252,7 @@ const WEEKLY_MESSAGES = {
     ]
 };
 
-// Webhook mesajı gönderme fonksiyonu
+// Webhook mesajı gönderme fonksiyonu (GÜNCELLENMIŞ)
 async function sendWebhookMessage(messageData, dayName) {
     const embed = {
         title: messageData.title,
@@ -269,6 +269,7 @@ async function sendWebhookMessage(messageData, dayName) {
     }
 
     const payload = {
+        content: "@everyone",  // ✅ EKLENEN SATIR - @everyone mention
         embeds: [embed]
     };
 
